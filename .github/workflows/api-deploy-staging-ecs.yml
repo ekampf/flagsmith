@@ -78,8 +78,10 @@ jobs:
               id: register_migrate_task
               run: |
                   TASK_DEFINITION=$(aws ecs describe-task-definition --task-definition flagsmith-api-migration)
-                  NEW_TASK_DEFINITION=$(echo $TASK_DEFINITION | jq --arg IMAGE "${{ steps.build-image.outputs.image }}" '.taskDefinition | .containerDefinitions[0].image = $IMAGE | del(.taskDefinitionArn) | del(.revision) | del(.status) | del(.requiresAttributes) | del(.compatibilities)')
-                  echo "::set-output name=task_definition_arn::$(aws ecs register-task-definition --cli-input-json $NEW_TASK_DEFINITION | jq '.taskDefinition.taskDefinitionArn')"
+                  NEW_TASK_DEFINITION=$(echo $TASK_DEFINITION | jq --arg IMAGE "${{ steps.build-image.outputs.image }}" '.taskDefinition | .containerDefinitions[0].image = $IMAGE
+                  | del(.taskDefinitionArn) | del(.revision) | del(.status) | del(.requiresAttributes) | del(.compatibilities) | del(.registeredAt) | del(.registeredBy)')
+
+                  echo "::set-output name=task_definition_arn::$(aws ecs register-task-definition --cli-input-json \"$NEW_TASK_DEFINITION\" | jq '.taskDefinition.taskDefinitionArn')"
                   aws ecs run-task --cluster ${{ env.ECS_CLUSTER }} --count 1 --launch-type FARGATE --task-definition flagsmith-api-migration  --network-configuration '{
                     "awsvpcConfiguration": {
                       "subnets": ["${{ env.VPC_SUBNET }}"],
