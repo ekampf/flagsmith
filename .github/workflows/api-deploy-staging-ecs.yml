@@ -71,6 +71,7 @@ jobs:
               id: register_migrate_task
               run: |
                   TASK_DEFINITION=$(aws ecs describe-task-definition --task-definition flagsmith-api-migration)
+                  # update the image and remove extra data
                   NEW_TASK_DEFINITION=$(echo $TASK_DEFINITION | jq --arg IMAGE "${{ steps.build-image.outputs.image }}" '.taskDefinition | .containerDefinitions[0].image = $IMAGE
                   | del(.taskDefinitionArn) | del(.revision) | del(.status) | del(.requiresAttributes) | del(.compatibilities) | del(.registeredAt) | del(.registeredBy)')
 
