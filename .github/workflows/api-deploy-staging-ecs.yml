@@ -55,8 +55,8 @@ jobs:
                   echo "::set-output name=image::$ECR_REPOSITORY:$IMAGE_TAG"
             - name: Get Current api-migration task definition
               run: |
-                AWS_RESPONSE=$(aws ecs describe-task-definition --task-definition flagsmith-api-migration)
-                echo $AWS_RESPONSE | jq .taskDefinition > flagsmith-api-migration-definition.json
+                TASK_DEFINITION=$(aws ecs describe-task-definition --task-definition flagsmith-api-migration)
+                NEW_TASK_DEFINTIION=$(echo $TASK_DEFINITION | jq --arg IMAGE "${{ steps.build-image.outputs.image }}" '.taskDefinition | .containerDefinitions[0].image = $IMAGE | del(.taskDefinitionArn) | del(.revision) | del(.status) | del(.requiresAttributes) | del(.compatibilities)')
 
             - name: Fill in the new image ID in the Amazon ECS API task definition
               id: task-def-api
@@ -66,13 +66,13 @@ jobs:
                   container-name: flagsmith-api
                   image: ${{ steps.build-image.outputs.image }}
 
-            - name: Fill in the new image ID in the Amazon ECS migration task definition
-              id: task-def-api-migration
-              uses: aws-actions/amazon-ecs-render-task-definition@v1
-              with:
-                  task-definition: flagsmith-api-migration-definition.json
-                  container-name: flagsmith-api-migration
-                  image: ${{ steps.build-image.outputs.image }}
+            # - name: Fill in the new image ID in the Amazon ECS migration task definition
+            #   id: task-def-api-migration
+            #   uses: aws-actions/amazon-ecs-render-task-definition@v1
+            #   with:
+            #       task-definition: flagsmith-api-migration-definition.json
+            #       container-name: flagsmith-api-migration
+            #       image: ${{ steps.build-image.outputs.image }}
 
             - name: Perform migrations
               id: register_migrate_task
