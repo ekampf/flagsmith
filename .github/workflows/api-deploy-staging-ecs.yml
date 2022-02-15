@@ -53,6 +53,10 @@ jobs:
                   docker build -t $ECR_REPOSITORY:$IMAGE_TAG -f Dockerfile .
                   docker push $ECR_REPOSITORY:$IMAGE_TAG
                   echo "::set-output name=image::$ECR_REPOSITORY:$IMAGE_TAG"
+            - name: Get Current api-migration task definition
+              run: |
+                AWS_RESPONSE=$(aws ecs describe-task-definition --task-definition flagsmith-api-migration)
+                echo $AWS_RESPONSE | jq .taskDefinition > flagsmith-api-migration-definition.json
 
             - name: Fill in the new image ID in the Amazon ECS API task definition
               id: task-def-api
@@ -66,7 +70,7 @@ jobs:
               id: task-def-api-migration
               uses: aws-actions/amazon-ecs-render-task-definition@v1
               with:
-                  task-definition: infrastructure/aws/staging/ecs-task-definition-migration.json
+                  task-definition: flagsmith-api-migration-definition.json
                   container-name: flagsmith-api-migration
                   image: ${{ steps.build-image.outputs.image }}
 
