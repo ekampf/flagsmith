@@ -555,4 +555,4 @@ if SAML_INSTALLED:
     SAML_ACCEPTED_TIME_DIFF = env.int("SAML_ACCEPTED_TIME_DIFF", default=60)
     DJOSER["SERIALIZERS"]["current_user"] = "saml.serializers.SamlCurrentUserSerializer"
 
-EDGE_API_URL = env.str("EDGE_API_URL", None)
+EDGE_API_URL = env.str("EDGE_API_URL", "")
